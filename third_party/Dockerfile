@@ -5,11 +5,9 @@ ARG BUSYBOX_SHA256=b8cc24c9574d809e7279c3be349795c5d5ceb6fdf19ca709f80cde50e47de
 ARG WPA_VERSION=2.10
 ARG WPA_SHA256=20df7ae5154b3830355f8ab4269123a87affdea59fe74fe9292a91d0d7e17b2f
 
-RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' \
-        /etc/apt/sources.list /etc/apt/sources.list.d/debian.sources 2>/dev/null || true; \
-    dpkg --add-architecture armel && \
-    apt-get -o Acquire::Retries=5 -o Acquire::https::Timeout=30 update && \
-    apt-get -o Acquire::Retries=5 -o Acquire::https::Timeout=30 \
+RUN dpkg --add-architecture armel && \
+    apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=30 update && \
+    apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=30 \
         install -y --no-install-recommends \
         bzip2 ca-certificates curl file gcc gcc-arm-linux-gnueabi libc6-dev \
         libc6-dev-armel-cross \
