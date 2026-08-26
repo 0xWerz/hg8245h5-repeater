@@ -1,10 +1,12 @@
 #!/bin/sh
 
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
-SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 if [ -r "$SCRIPT_DIR/profile.env" ]; then
+    # shellcheck disable=SC1091
     . "$SCRIPT_DIR/profile.env"
 else
+    # shellcheck disable=SC1091
     . /mnt/jffs2/Install_gram/hg8245h5-repeater/profile.env
 fi
 
@@ -15,18 +17,18 @@ fail() { printf '[fail] %s\n' "$1"; failures=$((failures + 1)); }
 
 check_path() {
     if [ "$1" = d ]; then
-        [ -d "$2" ] && pass "$3" || fail "$3"
+        if [ -d "$2" ]; then pass "$3"; else fail "$3"; fi
     elif [ "$1" = w ]; then
-        [ -w "$2" ] && pass "$3" || fail "$3"
+        if [ -w "$2" ]; then pass "$3"; else fail "$3"; fi
     else
-        [ -e "$2" ] && pass "$3" || fail "$3"
+        if [ -e "$2" ]; then pass "$3"; else fail "$3"; fi
     fi
 }
 
 printf 'HG8245H5 repeater doctor\n'
 printf 'kernel: %s %s\n' "$(uname -s)" "$(uname -r)"
 
-[ "$(id -u)" = 0 ] && pass 'running as root' || fail 'root shell required'
+if [ "$(id -u)" = 0 ]; then pass 'running as root'; else fail 'root shell required'; fi
 case "$(uname -m)" in arm*|ARM*) pass '32-bit ARM runtime' ;; *) fail 'expected ARM runtime' ;; esac
 
 check_path d "/sys/class/net/$LAN_IF" "LAN interface $LAN_IF"
@@ -39,10 +41,10 @@ check_path f /bin/audit 'audit boot dispatcher'
 check_path f /mnt/jffs2/hw_hardinfo_feature 'feature database'
 
 for command in ifconfig iwconfig iwpriv iptables route start-stop-daemon; do
-    command -v "$command" >/dev/null 2>&1 && pass "command $command" || fail "missing command $command"
+    if command -v "$command" >/dev/null 2>&1; then pass "command $command"; else fail "missing command $command"; fi
 done
 
-grep -q '^cfg_wifi:' /etc/passwd 2>/dev/null && pass 'cfg_wifi service account' || fail 'missing cfg_wifi service account'
+if grep -q '^cfg_wifi:' /etc/passwd 2>/dev/null; then pass 'cfg_wifi service account'; else fail 'missing cfg_wifi service account'; fi
 
 if [ -d "$SCRIPT_DIR/files" ]; then
     BIN_DIR=$SCRIPT_DIR/files
@@ -50,7 +52,7 @@ else
     BIN_DIR=$PROJECT_DIR
 fi
 for binary in busybox-repeater wpa_supplicant.hg5r wpa_cli; do
-    [ -x "$BIN_DIR/$binary" ] && pass "helper $binary" || fail "missing helper $binary"
+    if [ -x "$BIN_DIR/$binary" ]; then pass "helper $binary"; else fail "missing helper $binary"; fi
 done
 
 if [ -d "$PROJECT_DIR" ]; then
@@ -60,6 +62,8 @@ if [ -d "$PROJECT_DIR" ]; then
     else
         if [ "${1:-}" = --health ]; then fail 'watchdog not running'; else printf '[info] watchdog not running\n'; fi
     fi
+    # The verified BusyBox runtime has no pgrep.
+    # shellcheck disable=SC2009
     if ps ww | grep '[h]ostapd' | grep -q "$PROJECT_DIR/hostapd-repeater.conf"; then
         pass 'output AP running'
     elif [ "${1:-}" = --health ]; then
@@ -67,7 +71,7 @@ if [ -d "$PROJECT_DIR" ]; then
     else
         printf '[info] output AP not running\n'
     fi
-    state=$($PROJECT_DIR/wpa_cli -p /var/run/wpa_supplicant -i "$STA_IF" status 2>/dev/null | sed -n 's/^wpa_state=//p' | head -1)
+    state=$("$PROJECT_DIR/wpa_cli" -p /var/run/wpa_supplicant -i "$STA_IF" status 2>/dev/null | sed -n 's/^wpa_state=//p' | head -1)
     [ "$state" = COMPLETED ] && pass 'upstream associated' || printf '[info] upstream state: %s\n' "${state:-not configured}"
     if netstat -lnt 2>/dev/null | grep -q ':8080 '; then
         pass 'setup UI listening'

@@ -4,6 +4,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
 PROFILE=/mnt/jffs2/Install_gram/hg8245h5-repeater/profile.env
 [ -r "$PROFILE" ] || exit 1
+# shellcheck disable=SC1090
 . "$PROFILE"
 
 BUSYBOX=$PROJECT_DIR/busybox-repeater
@@ -23,7 +24,10 @@ LOCK_DIR=/var/run/hg5r-service.lock
 UPSTREAM_CHANNEL=1
 UPSTREAM_BSSID=
 
-[ -r "$SETTINGS" ] && . "$SETTINGS"
+if [ -r "$SETTINGS" ]; then
+    # shellcheck disable=SC1090
+    . "$SETTINGS"
+fi
 
 umask 077
 exec >>"$LOG_FILE" 2>&1
@@ -46,7 +50,7 @@ trap cleanup EXIT
 trap 'exit 0' INT TERM
 
 station_mac() {
-    cat "/sys/class/net/$STA_IF/address" 2>/dev/null | tr 'A-F' 'a-f'
+    tr 'A-F' 'a-f' <"/sys/class/net/$STA_IF/address" 2>/dev/null
 }
 
 station_connected() {
@@ -56,6 +60,8 @@ station_connected() {
 
 ensure_output_ap() {
     force_restart=$1
+    # The verified BusyBox runtime has no pgrep.
+    # shellcheck disable=SC2009
     if [ "$force_restart" != force ] && ps ww | grep '[h]ostapd' | grep -q "$HOSTAPD_CONF"; then
         return 0
     fi
@@ -64,6 +70,7 @@ ensure_output_ap() {
     "$BUSYBOX" usleep 400000
     /bin/hostapd -t -e /tmp/myramdom -f /tmp/hg5r-hostapd.log -B "$HOSTAPD_CONF"
     sleep 1
+    # shellcheck disable=SC2009
     if ps ww | grep '[h]ostapd' | grep -q "$HOSTAPD_CONF"; then
         log_msg "output AP active on channel $UPSTREAM_CHANNEL"
         return 0
@@ -126,7 +133,7 @@ warmup_radio() {
     "$WPA_CLI" -p /var/run/wpa_supplicant -i "$STA_IF" scan >/dev/null 2>&1 || true
     sleep 4
     "$WPA_CLI" -p /var/run/wpa_supplicant -i "$STA_IF" scan_results >/tmp/hg5r-warmup.tsv 2>/dev/null
-    line=$(tail -n +2 /tmp/hg5r-warmup.tsv | grep -vi "^$UPSTREAM_BSSID[[:space:]]" | grep '\[WPA' | head -1)
+    line=$(tail -n +2 /tmp/hg5r-warmup.tsv | grep -vi "^${UPSTREAM_BSSID}[[:space:]]" | grep '\[WPA' | head -1)
     [ -n "$line" ] || return 1
 
     bssid=$(printf '%s\n' "$line" | cut -f1)

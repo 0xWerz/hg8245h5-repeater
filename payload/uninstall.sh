@@ -20,7 +20,10 @@ if [ -x "$PROJECT_DIR/wpa_cli" ]; then
     "$PROJECT_DIR/wpa_cli" -p /var/run/wpa_supplicant -i vap8 terminate >/dev/null 2>&1 || true
 fi
 killall wpa_supplicant.hg5r 2>/dev/null || true
+# The verified BusyBox runtime has no pgrep.
+# shellcheck disable=SC2009
 ps ww | grep '[h]ostapd' | grep "$PROJECT_DIR/hostapd-repeater.conf" | awk '{print $1}' | while read -r pid; do kill "$pid" 2>/dev/null || true; done
+# shellcheck disable=SC2009
 ps ww | grep '[b]usybox-repeater httpd' | grep ':8080' | awk '{print $1}' | while read -r pid; do kill "$pid" 2>/dev/null || true; done
 
 while iptables -t mangle -D PREROUTING -j HG5R_MARK 2>/dev/null; do :; done

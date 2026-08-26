@@ -1,7 +1,7 @@
 #!/bin/sh
 
 set -eu
-ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+ROOT=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 IMAGE=hg8245h5-repeater-toolchain:1
 
 command -v docker >/dev/null 2>&1 || {

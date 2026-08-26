@@ -30,13 +30,15 @@ manual_channel=$(decode "$(field manual_channel)")
 password=$(decode "$(field password)")
 
 password_length=$(printf '%s' "$password" | wc -c | tr -d ' ')
-[ "$password_length" -ge 8 ] 2>/dev/null && [ "$password_length" -le 63 ] 2>/dev/null || fail 'The Wi-Fi password must contain 8–63 characters.'
+if ! [ "$password_length" -ge 8 ] 2>/dev/null || ! [ "$password_length" -le 63 ] 2>/dev/null; then
+    fail 'The Wi-Fi password must contain 8–63 characters.'
+fi
 printf '%s' "$password" | grep -q '[[:cntrl:]]' && fail 'Control characters are not allowed in the password.'
 
 bssid=
 if [ -n "$network" ]; then
     printf '%s' "$network" | grep -Eq '^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$' || fail 'The selected access point identifier is invalid.'
-    line=$(grep -i "^$network[[:space:]]" "$CACHE" 2>/dev/null | head -1)
+    line=$(grep -i "^${network}[[:space:]]" "$CACHE" 2>/dev/null | head -1)
     [ -n "$line" ] || fail 'That scan result expired. Scan again.'
     frequency=$(printf '%s\n' "$line" | cut -f2)
     ssid=$(printf '%s\n' "$line" | cut -f5-)
@@ -52,7 +54,9 @@ else
 fi
 
 ssid_length=$(printf '%s' "$ssid" | wc -c | tr -d ' ')
-[ "$ssid_length" -ge 1 ] 2>/dev/null && [ "$ssid_length" -le 32 ] 2>/dev/null || fail 'The SSID must contain 1–32 bytes.'
+if ! [ "$ssid_length" -ge 1 ] 2>/dev/null || ! [ "$ssid_length" -le 32 ] 2>/dev/null; then
+    fail 'The SSID must contain 1–32 bytes.'
+fi
 printf '%s' "$ssid" | grep -q '[[:cntrl:]]' && fail 'Control characters are not allowed in the SSID.'
 case "$channel" in 1|2|3|4|5|6|7|8|9|10|11|12|13|14) ;; *) fail 'The selected channel is invalid.' ;; esac
 

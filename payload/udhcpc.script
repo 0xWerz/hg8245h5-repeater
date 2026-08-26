@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# udhcpc supplies these variables to its hook environment.
+# shellcheck disable=SC2154
+
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
 LEASE=/var/run/hg5r-lease
 GATEWAY=/var/run/hg5r-gateway

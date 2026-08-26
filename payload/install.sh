@@ -2,7 +2,8 @@
 
 set -eu
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
-SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+# shellcheck disable=SC1091
 . "$SCRIPT_DIR/profile.env"
 
 FILES=$SCRIPT_DIR/files

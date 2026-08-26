@@ -14,7 +14,7 @@ $WPA_CLI -p /var/run/wpa_supplicant -i vap8 scan_results >"$CACHE" 2>/dev/null
 current=$($WPA_CLI -p /var/run/wpa_supplicant -i vap8 status 2>/dev/null)
 current_bssid=$(printf '%s\n' "$current" | sed -n 's/^bssid=//p' | head -1)
 current_ssid=$(printf '%s\n' "$current" | sed -n 's/^ssid=//p' | head -1)
-if [ -n "$current_bssid" ] && ! grep -qi "^$current_bssid[[:space:]]" "$CACHE"; then
+if [ -n "$current_bssid" ] && ! grep -qi "^${current_bssid}[[:space:]]" "$CACHE"; then
     current_channel=$(iwconfig vap8 2>/dev/null | sed -n 's/.*Channel:\([0-9]*\).*/\1/p' | head -1)
     current_frequency=$((2407 + current_channel * 5))
     printf '%s\t%s\t0\t[CURRENT]\t%s\n' "$current_bssid" "$current_frequency" "$current_ssid" >>"$CACHE"
