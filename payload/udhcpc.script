@@ -1,0 +1,43 @@
+#!/bin/sh
+
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
+LEASE=/var/run/hg5r-lease
+GATEWAY=/var/run/hg5r-gateway
+DNS_FILE=/var/run/hg5r-dns
+
+case "$1" in
+    deconfig)
+        ifconfig "$interface" 0.0.0.0
+        rm -f "$LEASE" "$GATEWAY" "$DNS_FILE"
+        ;;
+    bound|renew)
+        if [ -n "$subnet" ]; then
+            ifconfig "$interface" "$ip" netmask "$subnet" up
+        else
+            ifconfig "$interface" "$ip" up
+        fi
+
+        route del default 2>/dev/null || true
+        : >"$GATEWAY"
+        for gateway in $router; do
+            route add default gw "$gateway" dev "$interface"
+            echo "$gateway" >"$GATEWAY"
+            break
+        done
+
+        : >"$DNS_FILE"
+        for server in $dns; do
+            echo "$server" >>"$DNS_FILE"
+        done
+
+        {
+            printf 'ip=%s\n' "$ip"
+            printf 'subnet=%s\n' "$subnet"
+            printf 'router=%s\n' "$router"
+            printf 'dns=%s\n' "$dns"
+            printf 'lease=%s\n' "$lease"
+        } >"$LEASE"
+        ;;
+esac
+
+exit 0

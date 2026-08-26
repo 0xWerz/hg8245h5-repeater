@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install checks
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Unit and tree tests
+        run: make check
+      - name: ShellCheck
+        run: find payload scripts -type f \( -name '*.sh' -o -name '*.script' -o -name '*.cgi' \) -print0 | xargs -0 shellcheck -e SC2016

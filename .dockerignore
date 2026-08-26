@@ -1,0 +1,5 @@
+# The toolchain build needs only this configuration file. In particular, never
+# send generated Wi-Fi credentials from build/ to the Docker daemon.
+*
+!third_party/
+!third_party/wpa_supplicant.config

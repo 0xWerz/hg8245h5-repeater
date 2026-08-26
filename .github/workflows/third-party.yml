@@ -1,0 +1,26 @@
+name: ARM helper build
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - third_party/**
+      - scripts/build-third-party.sh
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make third-party
+      - name: Build a complete test package
+        env:
+          HG5R_OUTPUT_SSID: HG8245H5-CI
+          HG5R_OUTPUT_PSK: ci-only-password
+        run: |
+          make package
+          cd build/stage
+          sha256sum -c manifest.sha256

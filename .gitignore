@@ -1,0 +1,15 @@
+/build/
+/dist/
+/vendor/bin/*
+!/vendor/bin/.gitkeep
+/vendor/licenses/
+*.pyc
+__pycache__/
+.DS_Store
+
+# Never commit generated network credentials.
+*.local
+*.secret
+wpa-repeater.conf
+hostapd-repeater.conf
+hostapd-repeater.psk
