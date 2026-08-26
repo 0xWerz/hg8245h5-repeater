@@ -11,5 +11,6 @@ __pycache__/
 *.local
 *.secret
 wpa-repeater.conf
+!/payload/templates/wpa-repeater.conf
 hostapd-repeater.conf
 hostapd-repeater.psk
