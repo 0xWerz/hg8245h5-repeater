@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - .github/workflows/third-party.yml
       - third_party/**
       - scripts/build-third-party.sh
 
@@ -14,7 +15,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: make third-party
       - name: Build a complete test package
         env:
